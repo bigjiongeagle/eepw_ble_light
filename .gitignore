@@ -1,1 +1,6 @@
 .metadata/*
+BLE_p2pServer/STM32CubeIDE/Debug/*.mk
+*.d
+*.o
+*.su
+*.cyclo
