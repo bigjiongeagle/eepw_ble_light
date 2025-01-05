@@ -34,6 +34,7 @@
 /* External variables --------------------------------------------------------*/
 extern RAMCFG_HandleTypeDef hramcfg_SRAM1;
 extern RNG_HandleTypeDef hrng;
+extern TIM_HandleTypeDef htim2;
 
 /* USER CODE BEGIN EV */
 
@@ -65,6 +66,7 @@ void MX_StandbyExit_PeripheralInit(void)
 
   memset(&hramcfg_SRAM1, 0, sizeof(hramcfg_SRAM1));
   memset(&hrng, 0, sizeof(hrng));
+  memset(&htim2, 0, sizeof(htim2));
 
   MX_GPIO_Init();
   MX_RAMCFG_Init();
