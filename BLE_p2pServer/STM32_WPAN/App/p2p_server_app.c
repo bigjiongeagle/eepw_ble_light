@@ -33,7 +33,8 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "app_bsp.h"
-
+#include "stm32wbaxx_nucleo.h"
+extern TIM_HandleTypeDef htim2;
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -78,7 +79,8 @@ typedef struct
 
 /* External variables --------------------------------------------------------*/
 /* USER CODE BEGIN EV */
-
+extern float bus_voltage;
+extern float current;
 /* USER CODE END EV */
 
 /* Private macros ------------------------------------------------------------*/
@@ -92,7 +94,7 @@ static P2P_SERVER_APP_Context_t P2P_SERVER_APP_Context;
 uint8_t a_P2P_SERVER_UpdateCharData[247];
 
 /* USER CODE BEGIN PV */
-
+uint16_t pwmValue;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -135,6 +137,17 @@ void P2P_SERVER_Notification(P2P_SERVER_NotificationEvt_t *p_Notification)
         LOG_INFO_APP("-- P2P APPLICATION SERVER : LED1 OFF\n");
         P2P_SERVER_APP_Context.LedControl.Led1 = 0x00; /* LED1 OFF */
       }
+
+			if(p_Notification->DataTransfered.p_Payload[0] == 0x03)
+			{
+				pwmValue = p_Notification->DataTransfered.p_Payload[1];
+				__HAL_TIM_SET_COMPARE(&htim2, TIM_CHANNEL_3,pwmValue);
+			}
+			if(p_Notification->DataTransfered.p_Payload[0] == 0x04)
+			{
+				pwmValue = p_Notification->DataTransfered.p_Payload[1];
+				__HAL_TIM_SET_COMPARE(&htim2, TIM_CHANNEL_4,pwmValue);
+			}
       /* USER CODE END Service1Char1_WRITE_NO_RESP_EVT */
       break;
 
@@ -247,10 +260,35 @@ __USED void P2P_SERVER_Switch_c_SendNotification(void) /* Property Notification 
   {
     P2P_SERVER_APP_Context.ButtonControl.ButtonStatus = 0x00;
   }
-  a_P2P_SERVER_UpdateCharData[0] = 0x01; /* Device Led selection */
-  a_P2P_SERVER_UpdateCharData[1] = P2P_SERVER_APP_Context.ButtonControl.ButtonStatus;
+
+    uint32_t *pValue = &bus_voltage;
+    uint32_t tempValue = *pValue;
+    LOG_INFO_APP("--  tempValue == %x\n", tempValue);
+
+	for (size_t i = 0; i < 4; i++)
+	{
+		a_P2P_SERVER_UpdateCharData[3 -i] = (tempValue >> (8 * i)) & 0xFF;
+	}
+	for (size_t i = 0; i < 4; i++)
+	{
+		LOG_INFO_APP("-- No %d of buffer == %x\n", i, a_P2P_SERVER_UpdateCharData[i]);
+	}
+
+	*pValue = &current;
+	tempValue = *pValue;
+	LOG_INFO_APP("--  tempValue == %x\n", tempValue);
+
+	for (size_t i = 0; i < 4; i++)
+	{
+		a_P2P_SERVER_UpdateCharData[7 -i] = (tempValue >> (8 * i)) & 0xFF;
+	}
+	for (size_t i = 0; i < 4; i++)
+	{
+		LOG_INFO_APP("-- No %d of buffer == %x\n", i + 4, a_P2P_SERVER_UpdateCharData[i + 4]);
+	}
+	
   /* Update notification data length */
-  p2p_server_notification_data.Length = (p2p_server_notification_data.Length) + 2;
+  p2p_server_notification_data.Length = (p2p_server_notification_data.Length) + 8;
 
   if(P2P_SERVER_APP_Context.Switch_c_Notification_Status == Switch_c_NOTIFICATION_ON)
   {
