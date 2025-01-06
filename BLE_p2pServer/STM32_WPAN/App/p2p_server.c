@@ -72,7 +72,7 @@ typedef struct{
 
 /* Private variables ---------------------------------------------------------*/
 static const uint16_t SizeLed_C = 2;
-static const uint16_t SizeSwitch_C = 2;
+static const uint16_t SizeSwitch_C = 8;
 
 static P2P_SERVER_Context_t P2P_SERVER_Context;
 
